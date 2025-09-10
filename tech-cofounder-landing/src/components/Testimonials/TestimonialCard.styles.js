@@ -56,8 +56,8 @@ export const AuthorAvatar = styled.div`
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background: ${({ theme, hasError }) => 
-    hasError 
+  background: ${({ theme, $hasError }) => 
+    $hasError 
       ? theme.colors.gradient.primary 
       : theme.colors.surface
   };

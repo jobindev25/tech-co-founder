@@ -68,7 +68,7 @@ const Header = ({
   return (
     <HeaderSection
       className={className}
-      isScrolled={isScrolled}
+      $isScrolled={isScrolled}
       role="banner"
       {...props}
     >
@@ -116,7 +116,7 @@ const Header = ({
           </MobileMenuButton>
         </HeaderContent>
 
-        <MobileMenu isOpen={isMobileMenuOpen}>
+        <MobileMenu $isOpen={isMobileMenuOpen}>
           <NavList>
             {navItems.map((item) => (
               <NavItem key={item.id}>

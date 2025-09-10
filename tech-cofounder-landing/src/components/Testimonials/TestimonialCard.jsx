@@ -42,7 +42,7 @@ const TestimonialCard = ({
       </QuoteIcon>
       <QuoteText>"{quote}"</QuoteText>
       <AuthorSection>
-        <AuthorAvatar hasError={imageError}>
+        <AuthorAvatar $hasError={imageError}>
           {!imageError && avatar ? (
             <img
               src={avatar}

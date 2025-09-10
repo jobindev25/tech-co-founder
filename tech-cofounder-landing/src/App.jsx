@@ -2,20 +2,19 @@ import React, { useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from './styles/theme';
 import { GlobalStyles } from './styles/GlobalStyles';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import { Features } from './components/Features';
-import HowItWorks from './components/HowItWorks';
-import Testimonials from './components/Testimonials';
-import CallToAction from './components/CallToAction';
-import Footer from './components/Footer';
+import Header from './components/Header/Header';
+import Hero from './components/Hero/Hero';
+import Features from './components/Features/Features';
+import HowItWorks from './components/HowItWorks/HowItWorks';
+import Testimonials from './components/Testimonials/Testimonials';
+import CallToAction from './components/CallToAction/CallToAction';
+import Footer from './components/Footer/Footer';
 import TavusModal from './components/TavusModal/TavusModal';
 
 function App() {
   const [isTavusModalOpen, setIsTavusModalOpen] = useState(false);
 
   const handleCtaClick = () => {
-    // Open Tavus modal for AI conversation
     setIsTavusModalOpen(true);
   };
 
@@ -24,14 +23,10 @@ function App() {
   };
 
   const handleConversationStart = (conversationData) => {
-    // Log conversation start for analytics
     console.log('Tavus conversation started:', {
       conversation_id: conversationData.conversation_id,
       timestamp: new Date().toISOString(),
     });
-    
-    // You can add additional tracking or analytics here
-    // For example, send to Google Analytics, Mixpanel, etc.
   };
 
   return (
@@ -57,7 +52,6 @@ function App() {
         </main>
         <Footer />
         
-        {/* Tavus AI Conversation Modal */}
         <TavusModal
           isOpen={isTavusModalOpen}
           onClose={handleTavusModalClose}

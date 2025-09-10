@@ -67,7 +67,7 @@ const Modal = ({
             </CloseButton>
           </ModalHeader>
         )}
-        <ModalContent hasHeader={!!title}>
+        <ModalContent $hasHeader={!!title}>
           {children}
         </ModalContent>
       </ModalContainer>

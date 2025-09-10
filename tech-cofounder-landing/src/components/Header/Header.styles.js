@@ -6,11 +6,11 @@ export const HeaderSection = styled.header`
   left: 0;
   right: 0;
   z-index: 1000;
-  background-color: ${({ theme, isScrolled }) =>
-    isScrolled ? `${theme.colors.background}f5` : 'transparent'};
-  backdrop-filter: ${({ isScrolled }) => (isScrolled ? 'blur(10px)' : 'none')};
-  border-bottom: ${({ theme, isScrolled }) =>
-    isScrolled ? `1px solid ${theme.colors.text.light}20` : 'none'};
+  background-color: ${({ theme, $isScrolled }) =>
+    $isScrolled ? `${theme.colors.background}f5` : 'transparent'};
+  backdrop-filter: ${({ $isScrolled }) => ($isScrolled ? 'blur(10px)' : 'none')};
+  border-bottom: ${({ theme, $isScrolled }) =>
+    $isScrolled ? `1px solid ${theme.colors.text.light}20` : 'none'};
   transition: all 0.3s ease;
   padding: ${({ theme }) => theme.spacing.sm} 0;
 
@@ -167,9 +167,9 @@ export const MobileMenu = styled.div`
   box-shadow: ${({ theme }) => theme.shadows.lg};
   padding: ${({ theme }) => theme.spacing.md};
   margin-top: ${({ theme }) => theme.spacing.xs};
-  opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
-  visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
-  transform: translateY(${({ isOpen }) => (isOpen ? '0' : '-10px')});
+  opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
+  visibility: ${({ $isOpen }) => ($isOpen ? 'visible' : 'hidden')};
+  transform: translateY(${({ $isOpen }) => ($isOpen ? '0' : '-10px')});
   transition: all 0.3s ease;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {

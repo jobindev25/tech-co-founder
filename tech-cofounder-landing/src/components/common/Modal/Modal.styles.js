@@ -108,11 +108,11 @@ export const CloseButton = styled.button`
 `;
 
 export const ModalContent = styled.div`
-  padding: ${({ hasHeader, theme }) => 
-    hasHeader ? theme.spacing.lg : `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.lg}`
+  padding: ${({ $hasHeader, theme }) => 
+    $hasHeader ? theme.spacing.lg : `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.lg}`
   };
   overflow-y: auto;
-  max-height: ${({ hasHeader }) => hasHeader ? 'calc(90vh - 80px)' : '90vh'};
+  max-height: ${({ $hasHeader }) => $hasHeader ? 'calc(90vh - 80px)' : '90vh'};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: ${({ theme }) => theme.spacing.md};

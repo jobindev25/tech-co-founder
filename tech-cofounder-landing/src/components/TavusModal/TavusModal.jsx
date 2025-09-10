@@ -28,19 +28,48 @@ const TavusModal = ({
     setError(null);
     
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tavus/create-conversation`, {
+      // For local development, use mock data
+      if (import.meta.env.DEV) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const mockData = {
+          conversation_url: 'https://demo.tavus.io/conversation/demo-tech-cofounder',
+          conversation_id: 'demo-conversation-id'
+        };
+        
+        setConversationUrl(mockData.conversation_url);
+        if (onConversationStart) {
+          onConversationStart(mockData);
+        }
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-conversation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          // Add any additional parameters needed for Tavus conversation creation
-          persona_id: process.env.REACT_APP_TAVUS_PERSONA_ID,
+          conversation_name: `Tech Co-Founder Session ${Date.now()}`,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to create conversation: ${response.statusText}`);
+        const errorText = await response.text();
+        let errorMessage = `Failed to create conversation: ${response.statusText}`;
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // Use default error message
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -100,14 +129,12 @@ const TavusModal = ({
     }
 
     if (conversationUrl) {
+      // Open Tavus in a new window instead of iframe due to X-Frame-Options
+      window.open(conversationUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+      handleClose();
       return (
         <VideoContainer>
-          <VideoIframe
-            src={conversationUrl}
-            title="AI Tech Co-Founder Conversation"
-            allow="camera; microphone; fullscreen"
-            allowFullScreen
-          />
+          <LoadingText>Opening AI conversation in new window...</LoadingText>
         </VideoContainer>
       );
     }
