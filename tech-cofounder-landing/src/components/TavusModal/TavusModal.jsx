@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Modal from '../common/Modal/Modal';
 import {
@@ -20,37 +21,32 @@ const TavusModal = ({
   ...props
 }) => {
   const [conversationUrl, setConversationUrl] = useState(null);
+  const [conversationId, setConversationId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const createConversation = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // For local development, use mock data
-      if (import.meta.env.DEV) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const mockData = {
-          conversation_url: 'https://demo.tavus.io/conversation/demo-tech-cofounder',
-          conversation_id: 'demo-conversation-id'
-        };
-        
-        setConversationUrl(mockData.conversation_url);
-        if (onConversationStart) {
-          onConversationStart(mockData);
-        }
-        return;
+      const isDev = import.meta.env.DEV;
+      const url = isDev 
+        ? 'http://localhost:3008/api/tavus/create-conversation' 
+        : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-conversation`;
+
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (!isDev) {
+        headers['Authorization'] = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-conversation`, {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
+        headers,
         body: JSON.stringify({
           conversation_name: `Tech Co-Founder Session ${Date.now()}`,
         }),
@@ -76,6 +72,7 @@ const TavusModal = ({
       
       if (data.conversation_url) {
         setConversationUrl(data.conversation_url);
+        setConversationId(data.conversation_id);
         if (onConversationStart) {
           onConversationStart(data);
         }
@@ -94,7 +91,21 @@ const TavusModal = ({
     createConversation();
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
+    if (conversationId) {
+      try {
+        await fetch('http://localhost:3008/api/tavus/end-conversation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ conversation_id: conversationId }),
+        });
+      } catch (error) {
+        console.error('Error ending conversation:', error);
+      }
+      navigate(`/project/${conversationId}`);
+    }
     setConversationUrl(null);
     setError(null);
     setIsLoading(false);
@@ -129,12 +140,13 @@ const TavusModal = ({
     }
 
     if (conversationUrl) {
-      // Open Tavus in a new window instead of iframe due to X-Frame-Options
-      window.open(conversationUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-      handleClose();
       return (
         <VideoContainer>
-          <LoadingText>Opening AI conversation in new window...</LoadingText>
+          <VideoIframe
+            src={conversationUrl}
+            title="Tavus AI Conversation"
+            allow="camera; microphone"
+          />
         </VideoContainer>
       );
     }

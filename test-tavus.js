@@ -1,7 +1,9 @@
-// Test Tavus API integration - using original credentials
-const TAVUS_API_KEY = 'e23e98cc7dbe47faaab454c896be6576';
-const REPLICA_ID = 'rf4703150052';
-const PERSONA_ID = 'p340ce1b989c';
+// Test Tavus API integration - using credentials from .env file
+require('dotenv').config({ path: 'backend/.env' });
+
+const TAVUS_API_KEY = process.env.TAVUS_API_KEY;
+const REPLICA_ID = process.env.TAVUS_DEFAULT_REPLICA_ID;
+const PERSONA_ID = process.env.TAVUS_DEFAULT_PERSONA_ID;
 
 async function testTavusAPI() {
   console.log('Testing Tavus API integration...');

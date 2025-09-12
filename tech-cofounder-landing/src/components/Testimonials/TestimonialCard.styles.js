@@ -8,6 +8,7 @@ export const TestimonialCardContainer = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.surface};
   position: relative;
   transition: all 0.3s ease;
+  animation-delay: ${({ $delay }) => $delay || 0}ms;
   
   &:hover {
     transform: translateY(-4px);

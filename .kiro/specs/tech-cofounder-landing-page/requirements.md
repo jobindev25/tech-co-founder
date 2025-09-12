@@ -100,3 +100,92 @@ This document outlines the requirements for creating a sophisticated, modern, an
 1. WHEN a user scrolls to the footer THEN the system SHALL display minimalist design with essential links
 2. WHEN the footer is shown THEN the system SHALL include links for Terms, Privacy, and Contact
 3. WHEN the footer loads THEN the system SHALL show a copyright notice with the current year
+
+### Requirement 10
+
+**User Story:** As a user who has just completed a Tavus conversation, I want to be automatically notified and redirected to a project dashboard, so that I can immediately track the progress of my automated project development.
+
+#### Acceptance Criteria
+
+1. WHEN a Tavus conversation ends THEN the system SHALL broadcast a WebSocket message with event type "conversation_completed"
+2. WHEN the WebSocket message is received by the frontend THEN the system SHALL automatically redirect the user to "/project/{conversationId}"
+3. WHEN the redirect occurs THEN the system SHALL close any open modals and navigate seamlessly to the dashboard
+4. WHEN the broadcast fails THEN the system SHALL implement retry logic with exponential backoff
+
+### Requirement 11
+
+**User Story:** As a user viewing my project dashboard, I want to see a visual progress tracker showing all stages of the development pipeline, so that I understand what's happening and how much progress has been made.
+
+#### Acceptance Criteria
+
+1. WHEN the project dashboard loads THEN the system SHALL display a visual timeline with stages: Conversation Analysis, Project Plan Generation, Kiro Build Trigger, Build in Progress, Build Complete
+2. WHEN a stage is in progress THEN the system SHALL show a loading indicator and "In Progress" status
+3. WHEN a stage is completed THEN the system SHALL show a checkmark and "Completed ✅" status
+4. WHEN a stage has not started THEN the system SHALL show a "Pending" status with appropriate visual styling
+
+### Requirement 12
+
+**User Story:** As a user watching my project being built, I want to receive real-time updates about the build progress, so that I can see exactly what's happening as it occurs.
+
+#### Acceptance Criteria
+
+1. WHEN the dashboard component mounts THEN the system SHALL establish a WebSocket connection specific to the project
+2. WHEN build events are received via WebSocket THEN the system SHALL update the UI state in real-time
+3. WHEN a "build_progress" event is received THEN the system SHALL update the progress indicator and show current activity
+4. WHEN a "file_generated" event is received THEN the system SHALL show which files are being created
+5. WHEN connection is lost THEN the system SHALL attempt to reconnect automatically
+
+### Requirement 13
+
+**User Story:** As a user whose project has completed building, I want to see the final deliverables prominently displayed, so that I can easily access my deployed application and source code.
+
+#### Acceptance Criteria
+
+1. WHEN a "build_completed" event is received THEN the system SHALL transform the UI to show a "Project Complete" view
+2. WHEN the project is complete THEN the system SHALL display the live deployed application URL prominently
+3. WHEN the project is complete THEN the system SHALL display the generated source code repository link
+4. WHEN the project is complete THEN the system SHALL show project summary information including features implemented and tech stack used
+
+### Requirement 14
+
+**User Story:** As a user whose project build has failed, I want to see clear error information and guidance on next steps, so that I can understand what went wrong and how to proceed.
+
+#### Acceptance Criteria
+
+1. WHEN a "build_failed" event is received THEN the system SHALL display a clear error message in the UI
+2. WHEN an error occurs THEN the system SHALL show the specific error details and timestamp
+3. WHEN an error occurs THEN the system SHALL provide actionable guidance such as "Retry Build" or "Contact Support"
+4. WHEN retry is available THEN the system SHALL show the number of retry attempts remaining
+
+### Requirement 15
+
+**User Story:** As a developer implementing the dashboard, I want React Router properly configured with the new project route, so that navigation works seamlessly throughout the application.
+
+#### Acceptance Criteria
+
+1. WHEN React Router is not installed THEN the system SHALL install react-router-dom as a dependency
+2. WHEN App.jsx is configured THEN the system SHALL include routing setup with a route for "/project/:conversationId"
+3. WHEN routing is implemented THEN the system SHALL maintain existing routes for the landing page
+4. WHEN navigation occurs THEN the system SHALL use proper React Router navigation methods
+
+### Requirement 16
+
+**User Story:** As a user, I want the WebSocket connection to be reliable and handle network issues gracefully, so that I don't miss important updates about my project.
+
+#### Acceptance Criteria
+
+1. WHEN the WebSocket connection is established THEN the system SHALL authenticate the connection properly
+2. WHEN the connection drops THEN the system SHALL attempt to reconnect with exponential backoff
+3. WHEN reconnection succeeds THEN the system SHALL fetch any missed events and update the UI accordingly
+4. WHEN connection issues persist THEN the system SHALL show a connection status indicator to the user
+
+### Requirement 17
+
+**User Story:** As a user accessing the project dashboard, I want to see initial project information loaded immediately, so that I have context about what's being built even before real-time updates arrive.
+
+#### Acceptance Criteria
+
+1. WHEN the dashboard component mounts THEN the system SHALL fetch initial project data using the conversationId
+2. WHEN project data is loaded THEN the system SHALL display project name, description, and current status
+3. WHEN project data is unavailable THEN the system SHALL show appropriate loading states or error messages
+4. WHEN the API call fails THEN the system SHALL implement retry logic and show user-friendly error messages

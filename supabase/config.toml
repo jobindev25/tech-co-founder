@@ -128,8 +128,5 @@ template = "Your code is {{ .Code }} ."
 # # or any other third-party OIDC providers.
 # url = ""
 
-[edge_functions]
+[functions.all]
 enabled = true
-# Configure one of the supported request policies: `oneshot`, `per_worker`.
-# Use `oneshot` for hot reload, or `per_worker` for load testing.
-request_policy = "oneshot"

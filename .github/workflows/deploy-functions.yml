@@ -1,0 +1,169 @@
+# GitHub Actions workflow for deploying Supabase Edge Functions
+name: Deploy Edge Functions
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'supabase/functions/**'
+      - 'supabase/migrations/**'
+      - '.github/workflows/deploy-functions.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - 'supabase/migrations/**'
+
+env:
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local development
+        run: |
+          supabase start
+        working-directory: ./supabase
+
+      - name: Run function tests
+        run: |
+          deno test --allow-all supabase/functions/_tests/
+        env:
+          SUPABASE_URL: http://localhost:54321
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_LOCAL }}
+
+      - name: Run integration tests
+        run: |
+          deno run --allow-all supabase/functions/_tests/run-tests.ts
+        env:
+          SUPABASE_URL: http://localhost:54321
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_LOCAL }}
+
+      - name: Stop Supabase
+        run: supabase stop
+        working-directory: ./supabase
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to Supabase project
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID_STAGING }}
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy database migrations
+        run: |
+          supabase db push
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions
+        run: |
+          supabase functions deploy --no-verify-jwt
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Set function secrets
+        run: |
+          supabase secrets set --env-file .env.staging
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run post-deployment tests
+        run: |
+          deno run --allow-all supabase/functions/_tests/run-tests.ts --environment=staging
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_STAGING }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_STAGING }}
+
+  deploy-production:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to Supabase project
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID_PRODUCTION }}
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy database migrations
+        run: |
+          supabase db push
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions
+        run: |
+          supabase functions deploy --no-verify-jwt
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Set function secrets
+        run: |
+          supabase secrets set --env-file .env.production
+        working-directory: ./supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run post-deployment health checks
+        run: |
+          deno run --allow-all supabase/functions/_tests/run-tests.ts --environment=production --health-check-only
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_PRODUCTION }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_PRODUCTION }}
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "Production deployment successful"
+          # Add notification logic here (Slack, email, etc.)
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed, initiating rollback"
+          # Add rollback logic here

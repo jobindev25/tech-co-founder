@@ -36,7 +36,7 @@ const TestimonialCard = ({
   };
 
   return (
-    <TestimonialCardContainer className={className} delay={delay} {...props}>
+    <TestimonialCardContainer className={className} $delay={delay} {...props}>
       <QuoteIcon>
         <FiMessageSquare size={24} role="img" aria-hidden="true" />
       </QuoteIcon>

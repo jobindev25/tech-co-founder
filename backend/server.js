@@ -200,6 +200,87 @@ app.get('/api/tavus/conversation/:conversation_id', async (req, res) => {
   }
 });
 
+app.post('/api/create-user-session', async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+
+    const token = `temp_token_${Date.now()}`;
+
+    const { data, error } = await supabase
+      .from('user_sessions')
+      .insert([{ user_id, token, active: true }]);
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({ user_id, token });
+
+  } catch (error) {
+    console.error('Error creating user session:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
+app.post('/api/tavus/end-conversation', async (req, res) => {
+  try {
+    const { conversation_id } = req.body;
+
+    if (!conversation_id) {
+      return res.status(400).json({ error: 'conversation_id is required' });
+    }
+
+    console.log('Ending Tavus conversation:', conversation_id);
+
+    const tavusResponse = await fetch(`https://tavusapi.com/v2/conversations/${conversation_id}/end`, {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.TAVUS_API_KEY,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const responseText = await tavusResponse.text();
+
+    if (!tavusResponse.ok) {
+      console.error('Tavus API Error:', {
+        status: tavusResponse.status,
+        statusText: tavusResponse.statusText,
+        response: responseText
+      });
+
+      let errorMessage = 'Failed to end conversation with Tavus API';
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        errorMessage = responseText || errorMessage;
+      }
+
+      return res.status(tavusResponse.status).json({
+        error: errorMessage,
+        status: tavusResponse.status
+      });
+    }
+
+    res.json({ success: true, message: 'Conversation ended successfully' });
+
+  } catch (error) {
+    console.error('Error ending Tavus conversation:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
 // Get conversations endpoint
 app.get('/api/conversations', async (req, res) => {
   try {
@@ -242,6 +323,27 @@ app.get('/api/conversations/:conversation_id/events', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Get tasks endpoint
+app.get('/api/tasks', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching tasks:', error);
+      return res.status(500).json({ error: 'Failed to fetch tasks' });
+    }
+
+    res.json({ tasks: data });
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

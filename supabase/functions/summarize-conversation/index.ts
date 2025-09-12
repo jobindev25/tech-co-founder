@@ -71,6 +71,11 @@ Deno.serve(async (req) => {
 
     if (updateError) throw updateError;
 
+    // 5. Trigger task generation
+    await supabase.functions.invoke('generate-tasks', {
+      body: { summary },
+    });
+
     return new Response(JSON.stringify({ summary }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
