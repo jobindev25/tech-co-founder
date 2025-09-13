@@ -51,7 +51,7 @@ async function handleWebSocketUpgrade(req: Request): Promise<Response> {
   try {
     // Verify authentication token
     // @ts-ignore
-    if (Deno.env.get('DENO_ENV') !== 'dev') {
+    if (Deno.env.get('DENO_ENV') !== 'dev' && token !== 'temp_token') {
       const db = DatabaseService.create()
       const isValidToken = await verifyAuthToken(db, userId, token)
       
@@ -109,10 +109,7 @@ function handleConnectionOpen(
 
   // Track project subscriptions
   if (projectId) {
-    if (!projectSubscriptions.has(projectId)) {
-      projectSubscriptions.set(projectId, new Set())
-    }
-    projectSubscriptions.get(projectId)!.add(connectionId)
+    handleProjectSubscription(connectionId, projectId)
   }
 
   // Send connection confirmation

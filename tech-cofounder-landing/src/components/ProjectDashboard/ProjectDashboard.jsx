@@ -123,7 +123,7 @@ const ProjectDashboard = () => {
           return null;
         }
         
-        const wsUrl = `${import.meta.env.VITE_SUPABASE_URL.replace('https://', 'wss://').replace('http://', 'ws://')}/functions/v1/websocket-manager?conversation_id=${conversationId}&user_id=user_${conversationId}&token=temp_token`;
+        const wsUrl = `${import.meta.env.VITE_SUPABASE_URL.replace('https://', 'wss://').replace('http://', 'ws://')}/functions/v1/websocket-manager?conversation_id=${conversationId}&user_id=user_${conversationId}&token=temp_token&apikey=${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {

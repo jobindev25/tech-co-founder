@@ -127,6 +127,3 @@ template = "Your code is {{ .Code }} ."
 # # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
 # # or any other third-party OIDC providers.
 # url = ""
-
-[functions.all]
-enabled = true

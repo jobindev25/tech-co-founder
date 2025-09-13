@@ -14,6 +14,7 @@ import {
 const logger = new Logger('TavusWebhook')
 
 serve(async (req) => {
+  logger.info('Tavus webhook handler invoked', { method: req.method, url: req.url })
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: createCorsHeaders() })

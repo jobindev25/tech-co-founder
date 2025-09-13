@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { Logger } from '../_shared/utils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+const logger = new Logger('CreateConversation')
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -36,7 +39,7 @@ serve(async (req) => {
       }
     }
 
-    console.log('Creating Tavus conversation with:', {
+    logger.info('Creating Tavus conversation with:', {
       replica_id: requestBody.replica_id,
       persona_id: requestBody.persona_id,
       conversation_name: requestBody.conversation_name
@@ -55,7 +58,7 @@ serve(async (req) => {
     const responseText = await tavusResponse.text()
 
     if (!tavusResponse.ok) {
-      console.error('Tavus API Error:', {
+      logger.error('Tavus API Error:', {
         status: tavusResponse.status,
         statusText: tavusResponse.statusText,
         response: responseText
@@ -82,7 +85,7 @@ serve(async (req) => {
     try {
       conversationData = JSON.parse(responseText)
     } catch (e) {
-      console.error('Failed to parse Tavus response:', responseText)
+      logger.error('Failed to parse Tavus response:', { responseText, error: e.message })
       return new Response(
         JSON.stringify({ error: 'Invalid response from Tavus API' }),
         { 
@@ -110,18 +113,18 @@ serve(async (req) => {
         ])
 
       if (dbError) {
-        console.error('Error storing conversation in database:', dbError)
+        logger.error('Error storing conversation in database:', dbError)
         // Continue anyway - don't fail the request if DB storage fails
       } else {
-        console.log('Conversation stored in database successfully')
+        logger.info('Conversation stored in database successfully')
       }
     } catch (dbError) {
-      console.error('Database error:', dbError)
+      logger.error('Database error:', dbError)
       // Continue anyway - don't fail the request if DB storage fails
     }
 
     // Log conversation creation for analytics
-    console.log('Conversation created successfully:', {
+    logger.info('Conversation created successfully:', {
       conversation_id: conversationData.conversation_id,
       status: conversationData.status,
       timestamp: new Date().toISOString(),
@@ -139,7 +142,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error creating Tavus conversation:', error)
+    logger.error('Error creating Tavus conversation:', error)
     return new Response(
       JSON.stringify({
         error: 'Internal server error',

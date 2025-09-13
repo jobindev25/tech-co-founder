@@ -32,8 +32,8 @@ const TavusModal = ({
     
     try {
       const isDev = import.meta.env.DEV;
-      const url = isDev 
-        ? 'http://localhost:3008/api/tavus/create-conversation' 
+      const url = isDev
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/tavus/create-conversation`
         : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-conversation`;
 
       const headers = {
@@ -94,7 +94,7 @@ const TavusModal = ({
   const handleClose = async () => {
     if (conversationId) {
       try {
-        await fetch('http://localhost:3008/api/tavus/end-conversation', {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/tavus/end-conversation`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ const TavusModal = ({
     if (isOpen && !conversationUrl && !isLoading && !error) {
       createConversation();
     }
-  }, [isOpen]);
+  }, [isOpen, conversationUrl, isLoading, error]);
 
   const renderContent = () => {
     if (isLoading) {

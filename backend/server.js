@@ -372,12 +372,12 @@ app.post('/api/tavus/webhook', async (req, res) => {
   try {
     const { event_type, conversation_id, data } = req.body;
     
-    console.log('Tavus webhook received:', {
-      event_type,
-      conversation_id,
-      timestamp: new Date().toISOString(),
-      data,
-    });
+    console.log('--- NEW TAVUS WEBHOOK RECEIVED ---');
+    console.log('Event Type:', event_type);
+    console.log('Conversation ID:', conversation_id);
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Full Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('------------------------------------');
 
     // Store webhook event in Supabase
     try {
@@ -411,8 +411,8 @@ app.post('/api/tavus/webhook', async (req, res) => {
             started_at: new Date().toISOString()
           };
           break;
-        case 'conversation_ended':
-          console.log('Conversation ended:', conversation_id);
+        case 'system.shutdown':
+          console.log('System shutdown:', conversation_id);
           updateData = { 
             status: 'completed',
             ended_at: new Date().toISOString()
@@ -440,6 +440,31 @@ app.post('/api/tavus/webhook', async (req, res) => {
           updateData = { 
             participant_left_at: new Date().toISOString()
           };
+          break;
+        case 'system.replica_joined':
+          console.log('Replica joined:', conversation_id);
+          break;
+        case 'application.transcription_ready':
+          console.log('Transcription ready:', conversation_id);
+          // Store the transcript in the conversation_events table
+          try {
+            const { error: dbError } = await supabase
+              .from('conversation_events')
+              .insert([
+                {
+                  conversation_id,
+                  event_type: 'transcription_updated',
+                  event_data: { transcript: data.transcript },
+                  received_at: new Date().toISOString()
+                }
+              ]);
+
+            if (dbError) {
+              console.error('Error storing transcript:', dbError);
+            }
+          } catch (dbError) {
+            console.error('Database error storing transcript:', dbError);
+          }
           break;
         default:
           console.log('Unknown event type:', event_type);

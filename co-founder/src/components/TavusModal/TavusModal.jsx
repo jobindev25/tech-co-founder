@@ -34,7 +34,7 @@ const TavusModal = ({
     try {
       const isDev = import.meta.env.DEV;
       const url = isDev 
-        ? 'http://localhost:3007/api/tavus/create-conversation' 
+        ? 'http://localhost:3003/api/tavus/create-conversation' 
         : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-conversation`;
 
       const headers = {
